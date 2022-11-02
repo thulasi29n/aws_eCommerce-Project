@@ -1,11 +1,16 @@
-# aws-system-manager-SNS-Automation of Security Agent Installation
+# AWS-MVP-eCommerce-Application
 Project title:
-Implementation of a set of EC2 instances using Terraform and AWS Systems Manager configuration with Amazon Simple Notification Service for automated installation of security officers
+Implementation of an E-Commerce System on AWS in an automated way using Terraform and Ansible
  
- High-level Solution:
-In this project,as a DevSecOps Engineer I deployed a set of EC2 instances and infrastructure in an automated way using Terraform (infrastructure as code - IaC). Also, it was necessary to install a specific security agent on all these instances in an automated way.
+High-level Solution:
+In this project, I worked as Cloud Engineer using DevOps, where I created and implemented an e-Commerce MVP (Minimum Viable Product) on AWS in less than 4 hours and in an automated way using Terraform and Ansible (Infrastructure as Code – IaC).
 
-Once I provisioned the infrastructure, AWS System Manager and its component Command Run were used to install the security agents in an automated way. I used the Amazon Simple Notification Service – SNS to send an email informing the whole process status.
+I provisioned the infrastructure in an automated way using Terraform and Ansible to automate the below
+1. Configuration Management
+2. Software Installation
+3. Package Management of the EC2 instances.
+
+In addition to above, Magento, PHP, MySQL, and Redis has been used to accomplish the project requirement.
 ######################################################################################
 Flow of Steps:
 
@@ -14,99 +19,128 @@ Flow of Steps:
 3. Go-Live
 4. Post Go -live
 
-![1](https://user-images.githubusercontent.com/26733874/199411863-f4b7166d-dbaf-4950-9523-2ae120a4412d.png)
+![1](https://user-images.githubusercontent.com/26733874/199480192-8f20d548-03d0-4c11-89a5-2337eec67c08.png)
+
 
 
 ##########################################################################################
 High Level Architecture
-![2](https://user-images.githubusercontent.com/26733874/199411899-4f3e1778-552b-4ba6-91fb-7b75dcf1689f.png)
+![2](https://user-images.githubusercontent.com/26733874/199480212-cab66c46-3882-44af-ab53-a3670b0a1ce9.png)
+
 
 #########################################################################################
 
-Hands On Project - Part 1 - Terraform
+Hands-on Final Project - Part 1
 
-- Download VSCode and install the Terraform extension:
-https://code.visualstudio.com/download
+E-commerce MVP deployment
 
-- Download and unzip Terraform files (available in the project files)
+1. Create Magento free account on:
 
-- Edit Terraform main.tf file using the VSCode:
--- Change the VPC_ID and SUBNET_ID according to your default VPC
+https://marketplace.magento.com/ 
 
-- Create SSH Key Pair
--- name: sshkey1
--- format: .pem
+2. Create and Save the Public and Private Key from your Magento account.
 
-- Install Terraform on AWS Cloud Shell
+3. Open AWS Cloud Shell
+
+4. Install Terraform on AWS Cloud Shell
 
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
 sudo yum -y install terraform
 
-- Upload your edited terraform code to AWS Cloud Shell and unzip it
+5. Download the Terraform files on AWS Cloud Shell
+mkdir final_project
+cd final_project
+wget <<upload terrafrom scripts in the project into S3 and download from there>>
+unzip terraform.zip
 
-- Run terraform
+6. Edit Terraform files | variable (same steps done in module 5):
 
-$ terraform init
-$ terraform plan
-$ terraform apply
+- main.tf:
+* variables
 
-- Explore more about Terraform on https://learn.hashicorp.com/terraform
+7. Running Terraform to deploy the EC2 VM:
 
-Hands On Project - Part 2 - AWS Systems Manager
+cd terraform
+terraform init
+terraform plan
+terraform apply
 
-- Create an IAM role SystemsManagerToSNS
+Hands-on Final Project - Part 2
 
-Policy: AmazonSNSFullAccess
+- Connect to your EC2 instance via SSH
 
-- Create a Notification Topic DevOpsNotification | Copy the ARN
+- Install Ansible in the EC2 VM
 
-- Create a subscription - email:
+sudo yum-config-manager --enable epel
+sudo yum install ansible -y
 
-- Run the System Manager Quick Setup
--- Targets: choose instances manually
+- Download the Ansible playbooks
+wget <<upload ansible scripts in the project into S3 and download from there>>
+unzip ansible
 
-- Validate the 'configuration':  "Success" status
+- Edit and save Ansible file parameters
+cd ansible-magento2
 
-- Explore the Session Manager connecting by SSH browser (please note: if the EC2 instances don't show up, reboot both instances using the EC2 console to re-run the SSM-agent startup script)
+File: group_vars/all.yml
 
-- Execute "Run Command" to deploy the "security agent instalation"
+* magento_domain
+* server_hostname
+* repo_api_key
+* repo_secret_key
 
--- Command document: AWS-RunShellScript
+- Run Ansible to deploy the stack of tools for the e-commerce
 
--- Command parameters:
+cd ..
+ansible-playbook -i hosts.yml ansible-magento2.yml -k -vvv --become
 
-sudo wget -q <<upload install_security_agent.sh  to S3 (available in project)and provide the link >> -P /tmp
-sudo chmod +x /tmp/install_security_agent.sh
-sudo /tmp/install_security_agent.sh
-ls -ltr /usr/bin/security_agent
+- Testing the E-commerce website:
 
--- Targets: choose instances manually
+Just copy and paste the EC2 Public IP in the browser.
 
--- Uncheck enable writing to S3 Bucket.
+*in some cases, it can take some minutes to get the website available!
 
--- Enable SNS Notification
+- Setting up the e-commerce:
+http://<EC2_PUBLIC_IP>/securelocation
 
-IAM Role: SystemsManagertoSNS
-SNS Topic: <ARN>
+User: Admin
+Password: <<you can get this from magento files>>
 
-Events notifications:  all Events
+(User and Password of the Magento Admin available in the file: group_vars/all.yml)
 
-Change notifications
+- Download the ecommerce images and personalize the ecommerce website.
+<<upload images in the project into S3 and download from there>>
 
-Notify me for: Per instance basis
+-- Content > Configuration > HTML Head > Edit (Default Store View)
+--- Default page title: The Clodu Bootcamp Store
+--- Header > Logo image: The Cloud Bootcamp logo from images
+--- Header > Welcome text: Welcome to The Cloud Bootcamp Store!
+--- Cache Refresh (Flush it)
 
-- Open the AWS Cloud Shell and remove the resources created by Terraform
+-- Catalog > Products > Add product > The Cloud Bootcamp T-Shirt
+--- Price: 80
+--- Quantity: 100
+--- Images And Videos > Add images
+--- Save
+
+-- Content > Pages > Edit Home Pages
+--- Click Content > Erase content
+--- Insert Widget > Widget type: Catalog New Products List > Insert Widget
+
+--- Check if the customization is in place
+
+- Capture the evidence.
+
+- Think how you can innovate on this architecture (optional)
+
+- Remove the resources deployed via AWS Cloud Shell
 
 (If needed, re-install the Terraform following the same steps used previously)
 
-cd terraform
-./terraform destroy
+cd ~/final_project/terraform
+terraform destroy
 
-That's All! Congrats, Bootcamper!
-
-Supporting Links:
-
-https://aws.amazon.com/premiumsupport/knowledge-center/systems-manager-ec2-instance-not-appear/
+Links:
+Ansible Documentation: https://docs.ansible.com/ansible-core/devel/user_guide/index.html 
         
 Once you done validating -- go ahead and destroy all the resources.      
